@@ -1,0 +1,6 @@
+        RAYGUI_ICON_PLAYER_PLAY = 131,
+        RAYGUI_ICON_PLAYER_PAUSE = 132,
+
+        RAYGUI_ICON_PLAYER_STOP = 133,
+        
+        RAYGUI_ICON_REDO = 57,
