@@ -30,59 +30,43 @@ int optionMatrixSize = 15;
 bool focusedDropBox = false,focusedValueBox = false;
 void OptionsGui();
 
+
 MatrixViz matrix;
 Camera2D camera;
+#define POS 12
+
+void ZoomPositionChanges();
+void MatrixVizChanges();
 
 int main(int argc, char const *argv[])
 {
     InitWindow(W_WIDTH,W_HEIGHT,"Best Path Search Algo Viz");
     SetTargetFPS(60);
     GuiEnable(); 
-    float x=324,y=72,STEP=12;
     
     camera.target = {0,0};
-    camera.offset = {x,y};
     camera.zoom = 1;
     camera.rotation = 0;
+    camera.offset = {328,72};
+
     while (!WindowShouldClose())
     {
-        if(IsKeyDown(KEY_RIGHT))x-=STEP;
-        if(IsKeyDown(KEY_LEFT))x+=STEP;
-        if(IsKeyDown(KEY_DOWN))y-=STEP;
-        if(IsKeyDown(KEY_UP))y+=STEP;
-        camera.offset = {x,y};
-        
-        int wheel = GetMouseWheelMove();
-        if(wheel>0){
-            camera.zoom += 0.25;
-            camera.zoom = min(camera.zoom,3.f);
-        }
-        if(wheel<0){
-            camera.zoom -= 0.25;
-            camera.zoom = max(camera.zoom,0.25f);
-        }
-
-        if(IsMouseButtonPressed(0)){
-            Vector2 v = {GetMousePosition().x-camera.offset.x,GetMousePosition().y-camera.offset.y};
-            cout<<v.x<<' '<<v.y<<'\n';
-            
-            matrix.Clicked(v);
-        }
+        ZoomPositionChanges();
+        MatrixVizChanges();
 
         BeginDrawing();
         ClearBackground((Color){33,33,33,1});
         
+        //matrix
         BeginMode2D(camera);
-
         matrix.Draw();
         EndMode2D();
 
+        //GUI
         AnimationGui();
         OptionsGui();
-        EndDrawing();
 
-        
-        
+        EndDrawing();
     }
     
     GuiDisable();
@@ -151,5 +135,52 @@ void OptionsGui(){
         
 
     
+
+}
+
+void ZoomPositionChanges(){
+
+        if(IsKeyDown(KEY_RIGHT))camera.offset.x-=POS;
+        if(IsKeyDown(KEY_LEFT))camera.offset.x+=POS;
+        if(IsKeyDown(KEY_DOWN))camera.offset.y-=POS;
+        if(IsKeyDown(KEY_UP))camera.offset.y+=POS;
+        
+        int wheel = GetMouseWheelMove();
+        if(wheel>0){
+            camera.zoom += 0.25;
+            camera.zoom = min(camera.zoom,3.f);
+        }
+        if(wheel<0){
+            camera.zoom -= 0.25;
+            camera.zoom = max(camera.zoom,0.25f);
+        }
+}
+
+void MatrixVizChanges(){
+
+
+    if(animationPlaying)
+        return;
+
+    if(IsMouseButtonPressed(0)){
+        Vector2 v = {GetMousePosition().x-camera.offset.x,GetMousePosition().y-camera.offset.y};  
+        matrix.Clicked(v);
+    }
+
+    if(IsKeyPressed(KEY_S)){
+        Vector2 p = GetMousePosition();
+        p.x -= camera.offset.x;
+        p.y -= camera.offset.y;
+        if(p.x>=0 and p.y>=0)
+            matrix.SetStart(matrix.getCell(p));
+    }
+
+    if(IsKeyPressed(KEY_E)){
+        Vector2 p = GetMousePosition();
+        p.x -= camera.offset.x;
+        p.y -= camera.offset.y;
+        if(p.x>=0 and p.y>=0)
+            matrix.SetEnd(matrix.getCell(p));
+    }
 
 }
