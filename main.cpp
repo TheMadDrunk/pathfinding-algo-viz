@@ -3,6 +3,7 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
+#include "matrix.hpp"
 
 //window height width
 #define W_WIDTH 1080
@@ -37,6 +38,7 @@ int main(int argc, char const *argv[])
     SetTargetFPS(60);
     GuiEnable(); 
     
+    Cell mtest;
     
     while (!WindowShouldClose())
     {
@@ -46,8 +48,8 @@ int main(int argc, char const *argv[])
         BeginDrawing();
         ClearBackground((Color){33,33,33,1});
 
+        mtest.Draw(5,5);
         
-
         
         EndDrawing();
     }
