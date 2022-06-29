@@ -28,8 +28,9 @@ void AnimationGui();
 int optionAnimationSpeed = 1;
 int optionMatrixSize = 15;
 bool focusedDropBox = false,focusedValueBox = false;
-
 void OptionsGui();
+
+MatrixViz matrix;
 
 
 int main(int argc, char const *argv[])
@@ -37,25 +38,46 @@ int main(int argc, char const *argv[])
     InitWindow(W_WIDTH,W_HEIGHT,"Best Path Search Algo Viz");
     SetTargetFPS(60);
     GuiEnable(); 
-    
-    Cell mtest;
-    
+    float x=324,y=72,STEP=12;
+    Camera2D camera;
+    camera.target = {0,0};
+    camera.offset = {x,y};
+    camera.zoom = 1;
+    camera.rotation = 0;
     while (!WindowShouldClose())
     {
-        AnimationGui();
-        OptionsGui();
+        if(IsKeyDown(KEY_RIGHT))x-=STEP;
+        if(IsKeyDown(KEY_LEFT))x+=STEP;
+        if(IsKeyDown(KEY_DOWN))y-=STEP;
+        if(IsKeyDown(KEY_UP))y+=STEP;
+        camera.offset = {x,y};
+        
+        int wheel = GetMouseWheelMove();
+        if(wheel>0){
+            camera.zoom += 0.25;
+            camera.zoom = min(camera.zoom,3.f);
+        }
+        if(wheel<0){
+            camera.zoom -= 0.25;
+            camera.zoom = max(camera.zoom,0.25f);
+        }
 
         BeginDrawing();
         ClearBackground((Color){33,33,33,1});
 
-        mtest.Draw(5,5);
-        
-        
+        BeginMode2D(camera);
+
+        matrix.Draw();
+        EndMode2D();
+
+        AnimationGui();
+        OptionsGui();
         EndDrawing();
+
+        
+        
     }
     
-
-
     GuiDisable();
     CloseWindow();   
     return 0;
@@ -96,6 +118,7 @@ void AnimationGui(){
 }
 
 void OptionsGui(){
+
     if(animationPlaying)
         return;
 
