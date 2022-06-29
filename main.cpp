@@ -31,7 +31,7 @@ bool focusedDropBox = false,focusedValueBox = false;
 void OptionsGui();
 
 MatrixViz matrix;
-
+Camera2D camera;
 
 int main(int argc, char const *argv[])
 {
@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
     SetTargetFPS(60);
     GuiEnable(); 
     float x=324,y=72,STEP=12;
-    Camera2D camera;
+    
     camera.target = {0,0};
     camera.offset = {x,y};
     camera.zoom = 1;
@@ -62,9 +62,16 @@ int main(int argc, char const *argv[])
             camera.zoom = max(camera.zoom,0.25f);
         }
 
+        if(IsMouseButtonPressed(0)){
+            Vector2 v = {GetMousePosition().x-camera.offset.x,GetMousePosition().y-camera.offset.y};
+            cout<<v.x<<' '<<v.y<<'\n';
+            
+            matrix.Clicked(v);
+        }
+
         BeginDrawing();
         ClearBackground((Color){33,33,33,1});
-
+        
         BeginMode2D(camera);
 
         matrix.Draw();

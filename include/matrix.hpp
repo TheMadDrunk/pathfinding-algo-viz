@@ -81,7 +81,6 @@ public:
         
         for(int i = 0;i<size;i++)
             for(int j = 0;j<size;j++){
-                
                 table[i][j].Draw(i,j);
             }
         
@@ -89,16 +88,17 @@ public:
     }
 
     void Clicked(Vector2 pos){
+        if(pos.x<0 or pos.y<0)
+            return;
         std::pair<int,int> indxs = getCell(pos);
-        table[indxs.first][indxs.second].notActive != table[indxs.first][indxs.second].notActive;
+        table[indxs.first][indxs.second].notActive = ! table[indxs.first][indxs.second].notActive;
     }
 
     std::pair<int,int> getCell(Vector2 pos){
         int i = floor(pos.x)/(C_SIDE+MARGIN);
         int j = floor(pos.y)/(C_SIDE+MARGIN); 
         return std::pair<int,int>{i,j};
-    }
-    
+    }  
 };
 
 
