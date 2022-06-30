@@ -22,17 +22,21 @@ bool animationPause = false;
 
 //options
 // number of cells  = matrixSize*matrixSize
+#define MAXSIZE 50
+#define MINSIZE 5
 int matrixSize = 15;
 #define BASE_SPEED 750
 int animationSpeed = BASE_SPEED;//ms
 int algorithmInUse = 0;
 
 void AnimationGui();
-int optionAnimationSpeed = 1;
+int optionAnimationSpeed = 5;
 int optionMatrixSize = 15;
 bool focusedDropBox = false,focusedValueBox = false;
 void OptionsGui();
-
+void UX();
+void StartAnimation();
+void StopAnimation();
 
 MatrixViz matrix;
 Camera2D camera;
@@ -45,9 +49,9 @@ void MatrixVizChanges();
 
 int main(int argc, char const *argv[])
 {
-    InitWindow(W_WIDTH,W_HEIGHT,"Best Path Search Algo Viz");
+    InitWindow(W_WIDTH,W_HEIGHT,"Path Finding Algo visualization");
     SetTargetFPS(60);
-    GuiEnable(); 
+    GuiEnable();
     
     camera.target = {0,0};
     camera.zoom = 1;
@@ -58,6 +62,7 @@ int main(int argc, char const *argv[])
     {
         ZoomPositionChanges();
         MatrixVizChanges();
+        UX();
 
         BeginDrawing();
         ClearBackground((Color){33,33,33,1});
@@ -79,27 +84,39 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
+void UX(){
+    if(matrixSize != optionMatrixSize){
+        matrixSize = optionMatrixSize;
+        if(matrixSize<MINSIZE)matrixSize = MINSIZE;
+        if(matrixSize>MAXSIZE)matrixSize = MAXSIZE;
+        matrix.resize(matrixSize);
+    }
+}
+
+void StartAnimation(){
+    animationPlaying = true;
+    algoThread = thread(algorithm[algorithmInUse],ref(matrix),animationSpeed,ref(animationPlaying),ref(animationPause),ref(matrixAcc));
+}
+
+void StopAnimation(){
+    animationPlaying = false;
+    algoThread.join();
+    matrix.clean();
+}
+
 void AnimationGui(){
     //to start the animation
     if(!animationPlaying){
         if(GuiButton({W_WIDTH-35,10,30,30},"#131#")){ //if clicked start animation
-            animationPlaying = true;
-
-            matrixSize = optionMatrixSize;
-            if(matrixSize<5)matrixSize = 5;
-            if(matrixSize>50)matrixSize = 50;
-            matrix.resize(matrixSize);
-
+            
             animationSpeed = BASE_SPEED/optionAnimationSpeed;
+
             cout<<"size : "<<matrixSize<<'\n'
                 <<"delay :"<<animationSpeed<<'\n'
                 <<"start :"<<matrix.start.i<<'-'<<matrix.start.j<<'\n'
-                <<"end :"<<matrix.end.i<<'-'<<matrix.end.j<<'\n';
+                <<"end :"<<matrix.end.i<<'-'<<matrix.end.j<<"\n\n\n";
 
-            
-            //start animation on a thread
-            algoThread = thread(BFS,ref(matrix),animationSpeed,ref(animationPlaying),ref(matrixAcc));
-
+            StartAnimation();
         }
         return;
     }
@@ -119,13 +136,14 @@ void AnimationGui(){
     //repeat button
     if (GuiButton({W_WIDTH-70,10,30,30},"#57#"))
     {
-        
+        StopAnimation();
+        animationPause = true;
+        StartAnimation();
     }
 
     //stop button
     if(GuiButton({W_WIDTH-105,10,30,30},"#133#")){
-        animationPlaying = false;
-        algoThread.join();
+        StopAnimation();
     }
 
 }
@@ -138,7 +156,7 @@ void OptionsGui(){
     GuiPanel({0,0,170,720},"Options");
 
     //matrix size
-    GuiValueBox({70,30,60,40},"Matrix size",&optionMatrixSize,5,50,focusedValueBox);
+    GuiValueBox({70,30,60,40},"Matrix size",&optionMatrixSize,MINSIZE,MAXSIZE,focusedValueBox);
     if(IsMouseButtonReleased(0))
         if(CheckCollisionPointRec(GetMousePosition(),{70,30,60,40}))
             focusedValueBox = true;
@@ -149,7 +167,7 @@ void OptionsGui(){
     GuiSpinner({40,80,100,40},"Speed",&optionAnimationSpeed,1,10,false);
     GuiLabel({10,130,120,40},"Algorithm : ");
     
-    GuiDropdownBox({10,170,140,40},"Naive Algo\nBFS\nDFS",&algorithmInUse,focusedDropBox);
+    GuiDropdownBox({10,170,140,40},algoNames,&algorithmInUse,focusedDropBox);
     if(IsMouseButtonReleased(0))
         if(CheckCollisionPointRec(GetMousePosition(),{10,160,140,80}))
             focusedDropBox = true;

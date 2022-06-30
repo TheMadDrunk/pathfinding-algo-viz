@@ -33,7 +33,6 @@ class Cell
     public:
     bool notActive,visited,start,end,path;
     
-
     Cell(){
         path = false;
         end = false;
@@ -135,6 +134,14 @@ public:
         int j = floor(pos.y)/(C_SIDE+MARGIN); 
         return {std::min(i,size-1),std::min(j,size-1)};
     }  
+
+    void clean(){
+        for(int i = 0;i<size;i++)
+            for(int j = 0;j<size;j++){
+                table[i][j].path = false;
+                table[i][j].visited = false;
+            }
+    }
 };
 
 

@@ -3,13 +3,27 @@
 
 #include <iostream>
 #include <vector>
-#include <queue>
-#include <stack>
 #include <thread>
 #include <mutex>
 #include <chrono>
 #include "matrixviz.hpp"
 #include "raylib.h"
+
+void BFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc);
+void DFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc);
+
+
+//number of algorithm
+#define NB_ALG 4
+
+void (*algorithm[NB_ALG])(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc)=
+{
+    BFS,DFS
+};
+
+char algoNames[] = "BFS\nDFS\nDijkstra\nUCS\nA*\n";
+
+
 
 struct MatrixNode{
     index2D idx;
@@ -34,11 +48,6 @@ std::vector<MatrixNode*> getNeighbors(MatrixViz& mtx,MatrixNode* currNode){
         out.push_back(MakeMatrixNode({idx.i-1,idx.j},currNode));
     if(idx.j-1>=0)
         out.push_back(MakeMatrixNode({idx.i,idx.j-1},currNode));
-    std::cout<<"Q-"<<index2DStr(idx)<<"->";
-        for(MatrixNode* mn : out){
-            std::cout<<index2DStr(mn->idx)<<'_';
-        }
-    std::cout<<'\n';
     return out;
 }
 
@@ -49,6 +58,15 @@ bool AlreadyIn(std::vector<MatrixNode*>& arr,MatrixNode* tofind){
     return false;
 }
 
+void ShowSolution(MatrixNode* solution,MatrixViz& mtx){
+    //show the path (to func)
+    if(solution!=nullptr)
+        for(MatrixNode* curr = solution->parent;curr != nullptr;curr = curr->parent){
+            mtx.table[curr->idx.i][curr->idx.j].path=true;
+        }
+}
+
+/*
 void TestNaiveAlgo(MatrixViz& mtx,int delay,bool& animationPlaying){
     index2D idx = mtx.start;
     
@@ -63,8 +81,9 @@ void TestNaiveAlgo(MatrixViz& mtx,int delay,bool& animationPlaying){
     }
     
 }
+*/
 
-void BFS(MatrixViz& mtx,int delay,bool& animationPlaying,std::mutex& matrixAcc){
+void BFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc){
 
     MatrixNode* solution = nullptr;
     std::vector<MatrixNode*> Queue;
@@ -73,35 +92,71 @@ void BFS(MatrixViz& mtx,int delay,bool& animationPlaying,std::mutex& matrixAcc){
 
     while (animationPlaying and !Queue.empty())
     {
-        
+        //animation delay and pause 
         std::this_thread::sleep_for (std::chrono::milliseconds(delay));
+        if(animationPause)
+            continue;
+
+        //animation update (algo)
         MatrixNode* curr = Queue.front(); Queue.erase(Queue.begin());
         if(curr->idx == mtx.end){
             solution = curr;
             break;
         }
-        std::cout<<curr->idx.i<<'-'<<curr->idx.j<<'\n';
+        
         std::vector<MatrixNode*> Neighbors = getNeighbors(mtx,curr);
         for(MatrixNode* ngb : Neighbors)
             if(!mtx.table[ngb->idx.i][ngb->idx.j].visited 
                 and !mtx.table[ngb->idx.i][ngb->idx.j].notActive 
                 and !AlreadyIn(Queue,ngb))
                 Queue.push_back(ngb);
-            
         mtx.table[curr->idx.i][curr->idx.j].visited = true;
 
+        /*
         std::cout<<"SS- "<<index2DStr(curr->idx)<<" ->";
         for(MatrixNode* mn : Queue){
             std::cout<<index2DStr(mn->idx)<<'_';
         }
         std::cout<<'\n';
-
+        */
     }
 
-    if(solution!=nullptr)
-        for(MatrixNode* curr = solution->parent;curr != nullptr;curr = curr->parent){
-            mtx.table[curr->idx.i][curr->idx.j].path=true;
+    ShowSolution(solution,mtx);
+
+}
+
+void DFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc){
+    MatrixNode* solution = nullptr;
+    std::vector<MatrixNode*> Stack;
+    Stack.push_back(MakeMatrixNode(mtx.start,nullptr));
+    
+
+    while (animationPlaying and !Stack.empty())
+    {
+        //animation delay and pause 
+        std::this_thread::sleep_for (std::chrono::milliseconds(delay));
+        if(animationPause)
+            continue;
+
+        //animation update (algo)
+        MatrixNode* curr = Stack.back(); Stack.pop_back();
+        if(curr->idx == mtx.end){
+            solution = curr;
+            break;
         }
+        
+        std::vector<MatrixNode*> Neighbors = getNeighbors(mtx,curr);
+        
+        for(int i = Neighbors.size()-1;i>=0;i--)
+            if(!mtx.table[Neighbors[i]->idx.i][Neighbors[i]->idx.j].visited 
+                and !mtx.table[Neighbors[i]->idx.i][Neighbors[i]->idx.j].notActive)
+                Stack.push_back(Neighbors[i]);
+        mtx.table[curr->idx.i][curr->idx.j].visited = true;
+        
+    }
+
+    ShowSolution(solution,mtx);
+
 }
 
 
