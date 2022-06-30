@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -36,6 +37,7 @@ void OptionsGui();
 MatrixViz matrix;
 Camera2D camera;
 thread algoThread;
+mutex matrixAcc;
 #define POS 12
 
 void ZoomPositionChanges();
@@ -90,10 +92,13 @@ void AnimationGui(){
 
             animationSpeed = BASE_SPEED/optionAnimationSpeed;
             cout<<"size : "<<matrixSize<<'\n'
-                <<"delay :"<<animationSpeed<<'\n';
+                <<"delay :"<<animationSpeed<<'\n'
+                <<"start :"<<matrix.start.i<<'-'<<matrix.start.j<<'\n'
+                <<"end :"<<matrix.end.i<<'-'<<matrix.end.j<<'\n';
+
             
             //start animation on a thread
-            algoThread = thread(TestNaiveAlgo,ref(matrix),animationSpeed,ref(animationPlaying));
+            algoThread = thread(BFS,ref(matrix),animationSpeed,ref(animationPlaying),ref(matrixAcc));
 
         }
         return;

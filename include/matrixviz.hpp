@@ -20,6 +20,13 @@ const Color cPath = {0,255,0,255};
 struct index2D
 {int i,j;};
 
+bool operator==(index2D r,index2D l){
+    return r.i == l.i and r.j == l.j;
+}
+
+std::string index2DStr(index2D idx){
+    return std::to_string(idx.i)+"-"+std::to_string(idx.j);
+}
 
 class Cell
 {
@@ -28,7 +35,11 @@ class Cell
     
 
     Cell(){
-        path = end = start = visited = notActive = false;
+        path = false;
+        end = false;
+        start = false;
+        visited = false;
+        notActive = false;
     }
     
     void Draw(int i,int j){
@@ -75,17 +86,21 @@ public:
 
     MatrixViz(){
         resize(15);
+        SetStart({0,0});
+        SetEnd({14,14});
     }
 
     MatrixViz(int size){
         resize(size);
+        SetStart({0,0});
+        SetEnd({size-1,size-1});
     }
 
     void resize(int size){
         this->size = size;
         table.clear();
         table.resize(size,std::vector<Cell>(size));
-        SetStart({0,0});
+        SetStart(start);
         SetEnd({size-1,size-1});
     }
 
