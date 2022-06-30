@@ -18,9 +18,7 @@ const Color cEnd = {230,0,0,255};
 const Color cPath = {0,255,0,255};
 
 struct index2D
-{
-    int i,j;
-};
+{int i,j;};
 
 
 class Cell
@@ -60,6 +58,7 @@ class Cell
 
         if(visited){
             DrawRectangleRounded({posX,posY,C_SIDE,C_SIDE},0.5,0,cVisited);
+            return;
         }
         
         DrawRectangleRounded({posX,posY,C_SIDE,C_SIDE},0.5,0,cActive);
@@ -75,14 +74,16 @@ public:
     index2D start,end;
 
     MatrixViz(){
-        size = 15;
-        table.resize(15,std::vector<Cell>(15));
-        SetStart({0,0});
-        SetEnd({14,14});
+        resize(15);
     }
 
     MatrixViz(int size){
+        resize(size);
+    }
+
+    void resize(int size){
         this->size = size;
+        table.clear();
         table.resize(size,std::vector<Cell>(size));
         SetStart({0,0});
         SetEnd({size-1,size-1});

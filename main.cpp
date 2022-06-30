@@ -1,9 +1,11 @@
 #include <iostream>
+#include <thread>
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-#include "matrix.hpp"
+#include "matrixviz.hpp"
+#include "searchAlgos.hpp"
 
 //window height width
 #define W_WIDTH 1080
@@ -20,8 +22,8 @@ bool animationPause = false;
 //options
 // number of cells  = matrixSize*matrixSize
 int matrixSize = 15;
-float animationSpeed = 1;
-float zoom = 1;
+#define BASE_SPEED 750
+int animationSpeed = BASE_SPEED;//ms
 int algorithmInUse = 0;
 
 void AnimationGui();
@@ -33,6 +35,7 @@ void OptionsGui();
 
 MatrixViz matrix;
 Camera2D camera;
+thread algoThread;
 #define POS 12
 
 void ZoomPositionChanges();
@@ -79,6 +82,19 @@ void AnimationGui(){
     if(!animationPlaying){
         if(GuiButton({W_WIDTH-35,10,30,30},"#131#")){ //if clicked start animation
             animationPlaying = true;
+
+            matrixSize = optionMatrixSize;
+            if(matrixSize<5)matrixSize = 5;
+            if(matrixSize>50)matrixSize = 50;
+            matrix.resize(matrixSize);
+
+            animationSpeed = BASE_SPEED/optionAnimationSpeed;
+            cout<<"size : "<<matrixSize<<'\n'
+                <<"delay :"<<animationSpeed<<'\n';
+            
+            //start animation on a thread
+            algoThread = thread(TestNaiveAlgo,ref(matrix),animationSpeed,ref(animationPlaying));
+
         }
         return;
     }
@@ -87,7 +103,7 @@ void AnimationGui(){
     if(!animationPause){
         if(GuiButton({W_WIDTH-35,10,30,30},"#132#")){
             animationPause = true;
-        }
+        }   
     }
     else{
         if(GuiButton({W_WIDTH-35,10,30,30},"#131#")){
@@ -104,6 +120,7 @@ void AnimationGui(){
     //stop button
     if(GuiButton({W_WIDTH-105,10,30,30},"#133#")){
         animationPlaying = false;
+        algoThread.join();
     }
 
 }
@@ -127,7 +144,7 @@ void OptionsGui(){
     GuiSpinner({40,80,100,40},"Speed",&optionAnimationSpeed,1,10,false);
     GuiLabel({10,130,120,40},"Algorithm : ");
     
-    GuiDropdownBox({10,170,140,40},"BFS\nDFS",&algorithmInUse,focusedDropBox);
+    GuiDropdownBox({10,170,140,40},"Naive Algo\nBFS\nDFS",&algorithmInUse,focusedDropBox);
     if(IsMouseButtonReleased(0))
         if(CheckCollisionPointRec(GetMousePosition(),{10,160,140,80}))
             focusedDropBox = true;
