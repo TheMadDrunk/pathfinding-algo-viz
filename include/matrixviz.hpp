@@ -16,6 +16,7 @@ const Color cVisited = {128,255,255,255};
 const Color cStart = {0,128,0,255};
 const Color cEnd = {230,0,0,255};
 const Color cPath = {0,255,0,255};
+const Color cToVisit = {255,0,255,255};
 
 struct index2D
 {int i,j;};
@@ -31,13 +32,14 @@ std::string index2DStr(index2D idx){
 class Cell
 {
     public:
-    bool notActive,visited,start,end,path;
+    bool notActive,toVisit,visited,start,end,path;
     
     Cell(){
         path = false;
         end = false;
         start = false;
         visited = false;
+        toVisit = false;
         notActive = false;
     }
     
@@ -68,6 +70,11 @@ class Cell
 
         if(visited){
             DrawRectangleRounded({posX,posY,C_SIDE,C_SIDE},0.5,0,cVisited);
+            return;
+        }
+
+        if(toVisit){
+            DrawRectangleRounded({posX,posY,C_SIDE,C_SIDE},0.5,0,cToVisit);
             return;
         }
         
@@ -122,16 +129,16 @@ public:
             }
     }
 
-    void Clicked(Vector2 pos){
+    void Clicked(Vector2 pos,float zoom){
         if(pos.x<0 or pos.y<0)
             return;
-        index2D index = getCell(pos);
+        index2D index = getCell(pos,zoom);
         table[index.i][index.j].notActive = ! table[index.i][index.j].notActive;
     }
 
-    index2D getCell(Vector2 pos){
-        int i = floor(pos.x)/(C_SIDE+MARGIN);
-        int j = floor(pos.y)/(C_SIDE+MARGIN); 
+    index2D getCell(Vector2 pos,float zoom){
+        int i = floor(pos.x)/((C_SIDE+MARGIN)*zoom);
+        int j = floor(pos.y)/((C_SIDE+MARGIN)*zoom); 
         return {std::min(i,size-1),std::min(j,size-1)};
     }  
 
@@ -140,7 +147,12 @@ public:
             for(int j = 0;j<size;j++){
                 table[i][j].path = false;
                 table[i][j].visited = false;
+                table[i][j].toVisit = false;
             }
+    }
+
+    Cell& At(index2D idx){
+        return table[idx.i][idx.j];
     }
 };
 

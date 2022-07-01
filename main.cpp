@@ -200,11 +200,11 @@ void MatrixVizChanges(){
 
 
     if(animationPlaying)
-        return;
+        return; 
 
-    if(IsMouseButtonPressed(0)){
+    if(IsMouseButtonDown(0)){
         Vector2 v = {GetMousePosition().x-camera.offset.x,GetMousePosition().y-camera.offset.y};  
-        matrix.Clicked(v);
+        matrix.Clicked(v,camera.zoom);
     }
 
     if(IsKeyPressed(KEY_S)){
@@ -212,7 +212,7 @@ void MatrixVizChanges(){
         p.x -= camera.offset.x;
         p.y -= camera.offset.y;
         if(p.x>=0 and p.y>=0)
-            matrix.SetStart(matrix.getCell(p));
+            matrix.SetStart(matrix.getCell(p,camera.zoom));
     }
 
     if(IsKeyPressed(KEY_E)){
@@ -220,7 +220,7 @@ void MatrixVizChanges(){
         p.x -= camera.offset.x;
         p.y -= camera.offset.y;
         if(p.x>=0 and p.y>=0)
-            matrix.SetEnd(matrix.getCell(p));
+            matrix.SetEnd(matrix.getCell(p,camera.zoom));
     }
 
 }

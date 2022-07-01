@@ -108,8 +108,11 @@ void BFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,st
         for(MatrixNode* ngb : Neighbors)
             if(!mtx.table[ngb->idx.i][ngb->idx.j].visited 
                 and !mtx.table[ngb->idx.i][ngb->idx.j].notActive 
-                and !AlreadyIn(Queue,ngb))
-                Queue.push_back(ngb);
+                and !AlreadyIn(Queue,ngb)){
+                    mtx.At(ngb->idx).toVisit = true;
+                    Queue.push_back(ngb);
+
+                }
         mtx.table[curr->idx.i][curr->idx.j].visited = true;
 
         /*
@@ -148,11 +151,13 @@ void DFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,st
         std::vector<MatrixNode*> Neighbors = getNeighbors(mtx,curr);
         
         for(int i = Neighbors.size()-1;i>=0;i--)
-            if(!mtx.table[Neighbors[i]->idx.i][Neighbors[i]->idx.j].visited 
-                and !mtx.table[Neighbors[i]->idx.i][Neighbors[i]->idx.j].notActive)
-                Stack.push_back(Neighbors[i]);
+            if(!mtx.At(Neighbors[i]->idx).visited 
+                and !mtx.At(Neighbors[i]->idx).notActive){
+                    Stack.push_back(Neighbors[i]);
+                    mtx.At(Neighbors[i]->idx).toVisit = true;
+                }  
         mtx.table[curr->idx.i][curr->idx.j].visited = true;
-        
+
     }
 
     ShowSolution(solution,mtx);
