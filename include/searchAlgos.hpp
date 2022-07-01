@@ -11,6 +11,9 @@
 
 void BFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc);
 void DFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc);
+void UCS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc);
+void Astar(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc);
+
 
 
 //number of algorithm
@@ -18,21 +21,29 @@ void DFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,st
 
 void (*algorithm[NB_ALG])(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc)=
 {
-    BFS,DFS
+    BFS,DFS,UCS,Astar
 };
 
-char algoNames[] = "BFS\nDFS\nDijkstra\nUCS\nA*\n";
+char algoNames[] = "BFS\nDFS\nUCS\nA*";
 
 
 
 struct MatrixNode{
     index2D idx;
+    int cost;
     MatrixNode* parent;
 };
 
 MatrixNode* MakeMatrixNode(index2D idx,MatrixNode* parent){
     MatrixNode* out = new MatrixNode();
     out->idx = idx;
+    out->parent = parent;
+    return out; 
+}
+MatrixNode* MakeMatrixNode(index2D idx,MatrixNode* parent,int cost){
+    MatrixNode* out = new MatrixNode();
+    out->idx = idx;
+    out->cost = cost;
     out->parent = parent;
     return out; 
 }
@@ -164,6 +175,97 @@ void DFS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,st
 
 }
 
+int CompareCost(MatrixNode* l,MatrixNode* r){
+    return l->cost-r->cost;
+}
+
+MatrixNode* PrioQueuePop(std::vector<MatrixNode*>& Q,int (compare)(MatrixNode*,MatrixNode*)){
+    int best = 0;
+    for(int i = 0;i<Q.size();i++)
+        if(compare(Q[best],Q[i]) < 0)
+            best = i;
+    MatrixNode* out = Q[best];
+    Q.erase(Q.begin()+best);
+    return out;
+}
+
+bool AlreadyIn(std::vector<MatrixNode*>& arr,MatrixNode* tofind,int (compare)(MatrixNode*,MatrixNode*)){
+    for(MatrixNode* el : arr)
+        if(tofind->idx == el->idx and compare(tofind,el)<0)
+            return true;
+    return false;
+}
+
+void UpdateCost(std::vector<MatrixNode*>& Q,MatrixNode* toUpdate,int (compare)(MatrixNode*,MatrixNode*)){
+    for(MatrixNode* el : Q)
+        if(toUpdate->idx == el->idx){
+            el->cost = toUpdate->cost;
+            el->parent = toUpdate->parent;
+            return;
+        }
+           
+}
+
+std::vector<MatrixNode*> getNeighborsCost(MatrixViz& mtx,MatrixNode* currNode){
+    std::vector<MatrixNode*> out;
+    index2D idx = currNode->idx;
+    if(idx.i+1<mtx.size)
+        out.push_back(MakeMatrixNode({idx.i+1,idx.j},currNode,currNode->cost+1));
+    if(idx.j+1<mtx.size)
+        out.push_back(MakeMatrixNode({idx.i,idx.j+1},currNode,currNode->cost+1));
+    if(idx.i-1>=0)
+        out.push_back(MakeMatrixNode({idx.i-1,idx.j},currNode,currNode->cost+1));
+    if(idx.j-1>=0)
+        out.push_back(MakeMatrixNode({idx.i,idx.j-1},currNode,currNode->cost+1));
+    return out;
+}
+
+void UCS(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc){
+    
+    MatrixNode* solution = nullptr;
+    std::vector<MatrixNode*> Pqueue;
+    Pqueue.push_back(MakeMatrixNode(mtx.start,nullptr,0));
+    
+
+    while (animationPlaying and !Pqueue.empty())
+    {
+        //animation delay and pause 
+        std::this_thread::sleep_for (std::chrono::milliseconds(delay));
+        if(animationPause)
+            continue;
+
+        //animation update (algo)
+        MatrixNode* curr = PrioQueuePop(Pqueue,CompareCost);
+        if(curr->idx == mtx.end){
+            solution = curr;
+            break;
+        }
+        
+        std::vector<MatrixNode*> Neighbors = getNeighborsCost(mtx,curr);
+        for(MatrixNode* ngb : Neighbors)
+            if(!mtx.table[ngb->idx.i][ngb->idx.j].visited 
+                and !mtx.table[ngb->idx.i][ngb->idx.j].notActive 
+                and !AlreadyIn(Pqueue,ngb)){
+                    mtx.At(ngb->idx).toVisit = true;
+                    Pqueue.push_back(ngb);
+                }
+            else if(AlreadyIn(Pqueue,ngb,CompareCost))
+                UpdateCost(Pqueue,ngb,CompareCost);
+        mtx.table[curr->idx.i][curr->idx.j].visited = true;
+        /*
+        std::cout<<"SS- "<<index2DStr(curr->idx)<<" ->";
+        for(MatrixNode* mn : Queue){
+            std::cout<<index2DStr(mn->idx)<<'_';
+        }
+        std::cout<<'\n';
+        */
+    }
+
+    ShowSolution(solution,mtx);
+
+}
+
+void Astar(MatrixViz& mtx,int delay,bool& animationPlaying,bool& animationPause,std::mutex& matrixAcc){}
 
 
 #endif
