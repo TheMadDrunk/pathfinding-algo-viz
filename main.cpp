@@ -202,7 +202,7 @@ void MatrixVizChanges(){
     if(animationPlaying)
         return; 
 
-    if(IsMouseButtonDown(0)){
+    if(IsMouseButtonPressed(0)){
         Vector2 v = {GetMousePosition().x-camera.offset.x,GetMousePosition().y-camera.offset.y};  
         matrix.Clicked(v,camera.zoom);
     }
