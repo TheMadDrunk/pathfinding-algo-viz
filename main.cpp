@@ -50,6 +50,7 @@ void MatrixVizChanges();
 int main(int argc, char const *argv[])
 {
     InitWindow(W_WIDTH,W_HEIGHT,"Path Finding Algo visualization");
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
     GuiEnable();
     
@@ -164,7 +165,7 @@ void OptionsGui(){
     
 
     //speed
-    GuiSpinner({40,80,100,40},"Speed",&optionAnimationSpeed,1,10,false);
+    GuiSpinner({40,80,100,40},"Speed",&optionAnimationSpeed,1,20,false);
     GuiLabel({10,130,120,40},"Algorithm : ");
     
     GuiDropdownBox({10,170,140,40},algoNames,&algorithmInUse,focusedDropBox);
@@ -187,11 +188,11 @@ void ZoomPositionChanges(){
         
         int wheel = GetMouseWheelMove();
         if(wheel>0){
-            camera.zoom += 0.25;
+            camera.zoom += 0.125;
             camera.zoom = min(camera.zoom,3.f);
         }
         if(wheel<0){
-            camera.zoom -= 0.25;
+            camera.zoom -= 0.125;
             camera.zoom = max(camera.zoom,0.25f);
         }
 }
@@ -205,6 +206,16 @@ void MatrixVizChanges(){
     if(IsMouseButtonPressed(0)){
         Vector2 v = {GetMousePosition().x-camera.offset.x,GetMousePosition().y-camera.offset.y};  
         matrix.Clicked(v,camera.zoom);
+    }
+
+    if(IsKeyDown(KEY_U)){
+        Vector2 v = {GetMousePosition().x-camera.offset.x,GetMousePosition().y-camera.offset.y};  
+        matrix.At(matrix.getCell(v,camera.zoom)).notActive = true;
+    }
+
+    if(IsKeyDown(KEY_I)){
+        Vector2 v = {GetMousePosition().x-camera.offset.x,GetMousePosition().y-camera.offset.y};  
+        matrix.At(matrix.getCell(v,camera.zoom)).notActive = false;
     }
 
     if(IsKeyPressed(KEY_S)){

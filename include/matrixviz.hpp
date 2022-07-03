@@ -10,7 +10,7 @@
 #define C_SIDE 32
 #define MARGIN 5
 
-const Color cNotActive = {128,128,128,255};
+const Color cNotActive = {128,128,128,0};
 const Color cActive = {255,255,128,255};
 const Color cVisited = {128,255,255,255};
 const Color cStart = {0,128,0,255};
