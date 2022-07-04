@@ -26,6 +26,7 @@ bool animationPause = false;
 #define MINSIZE 5
 int matrixSize = 15;
 #define BASE_SPEED 750
+#define MAX_SPEED 30
 int animationSpeed = BASE_SPEED;//ms
 int algorithmInUse = 0;
 
@@ -165,7 +166,7 @@ void OptionsGui(){
     
 
     //speed
-    GuiSpinner({40,80,100,40},"Speed",&optionAnimationSpeed,1,20,false);
+    GuiSpinner({40,80,100,40},"Speed",&optionAnimationSpeed,1,MAX_SPEED,false);
     GuiLabel({10,130,120,40},"Algorithm : ");
     
     GuiDropdownBox({10,170,140,40},algoNames,&algorithmInUse,focusedDropBox);
